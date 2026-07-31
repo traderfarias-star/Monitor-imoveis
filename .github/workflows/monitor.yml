@@ -29,6 +29,14 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python main.py
 
+      - name: Guardar prints de debug
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug
+          path: debug/
+          if-no-files-found: ignore
+
       - name: Salvar historico de anuncios vistos
         run: |
           git config --global user.name "monitor-bot"
