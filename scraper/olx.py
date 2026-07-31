@@ -1,6 +1,20 @@
+import os
+import re
 from playwright.sync_api import sync_playwright
 
 HEADLESS = True
+DEBUG = True  # salva screenshot + html da primeira busca pra diagnosticar bloqueio
+
+
+def _salvar_debug(page, nome: str):
+    os.makedirs("debug", exist_ok=True)
+    slug = re.sub(r"[^a-z0-9]+", "-", nome.lower())
+    try:
+        page.screenshot(path=f"debug/{slug}.png", full_page=True)
+        with open(f"debug/{slug}.html", "w", encoding="utf-8") as f:
+            f.write(page.content())
+    except Exception as e:
+        print(f"[olx] Falha ao salvar debug: {e}")
 
 
 def buscar_anuncios(url: str) -> list[dict]:
@@ -18,6 +32,10 @@ def buscar_anuncios(url: str) -> list[dict]:
             page.goto(url, timeout=30000)
             page.wait_for_timeout(4000)
 
+            if DEBUG:
+                _salvar_debug(page, url)
+                print(f"[olx] Titulo da pagina carregada: {page.title()!r}")
+
             cards = page.query_selector_all('[data-testid*="ad-card"], a[href*="/vi/"]')
 
             for card in cards:
@@ -27,10 +45,10 @@ def buscar_anuncios(url: str) -> list[dict]:
                         continue
 
                     titulo_el = card.query_selector("h2, h3")
-                    titulo = titulo_el.inner_text().strip() if titulo_el else "(sem título)"
+                    titulo = titulo_el.inner_text().strip() if titulo_el else "(sem titulo)"
 
                     preco_el = card.query_selector('[data-testid*="price"], span:has-text("R$")')
-                    preco = preco_el.inner_text().strip() if preco_el else "Preço não informado"
+                    preco = preco_el.inner_text().strip() if preco_el else "Preco nao informado"
 
                     texto_completo = card.inner_text()
                     direto_dono = "direto com o proprietário" in texto_completo.lower()
