@@ -37,7 +37,7 @@ jobs:
           path: debug/
           if-no-files-found: ignore
 
-            - name: Salvar historico de anuncios vistos
+      - name: Salvar historico de anuncios vistos
         run: |
           git config --global user.name "monitor-bot"
           git config --global user.email "monitor-bot@users.noreply.github.com"
@@ -45,4 +45,3 @@ jobs:
           git diff --staged --quiet || git commit -m "Atualiza historico de anuncios"
           git pull --rebase origin main
           git push
-
